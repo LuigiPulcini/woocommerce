@@ -794,9 +794,13 @@ class WC_AJAX {
 		$loop         = intval( $_POST['loop'] );
 		$file_counter = 0;
 		$order        = wc_get_order( $order_id );
+		$items        = $order->get_items();
 
-		foreach ( $product_ids as $product_id ) {
-			$product = wc_get_product( $product_id );
+		foreach ( $items as $item ) {
+			$product = $item->get_product();
+			if ( ! in_array( $product->get_id(), $product_ids ) ) {
+				continue;
+			}
 			$files   = $product->get_downloads();
 
 			if ( ! $order->get_billing_email() ) {
@@ -805,7 +809,7 @@ class WC_AJAX {
 
 			if ( ! empty( $files ) ) {
 				foreach ( $files as $download_id => $file ) {
-					$inserted_id = wc_downloadable_file_permission( $download_id, $product_id, $order );
+					$inserted_id = wc_downloadable_file_permission( $download_id, $product_id, $order, $item->get_quantity(), $item );
 					if ( $inserted_id ) {
 						$download = new WC_Customer_Download( $inserted_id );
 						$loop ++;
